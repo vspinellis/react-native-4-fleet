@@ -1,10 +1,20 @@
-import Header from '../../components/Header';
-import { Container } from './styles';
+import { useNavigation } from '@react-navigation/native';
+import CarStatus from '../../components/CarStatus';
+import HomeHeader from '../../components/HomeHeader';
+import { Container, Content } from './styles';
 
 export default function Home() {
+  const navigation = useNavigation();
+  function handleRegisterMoviment() {
+    navigation.navigate('departure');
+  }
+
   return (
     <Container>
-      <Header />
+      <HomeHeader />
+      <Content>
+        <CarStatus onPress={handleRegisterMoviment} />
+      </Content>
     </Container>
   );
 }
