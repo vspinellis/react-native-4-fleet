@@ -4,7 +4,15 @@ import {
   useNavigation,
   useRoute
 } from '@react-navigation/native';
-import { Container, Content, Label, LicensePlate, Description, Footer } from './styles';
+import {
+  Container,
+  Content,
+  Label,
+  LicensePlate,
+  Description,
+  Footer,
+  AsyncMessage
+} from './styles';
 import Header from '../../components/Header';
 import { Button } from '../../components/Button';
 import ButtonIcon from '../../components/ButtonIcon';
@@ -13,9 +21,12 @@ import { useObject, useRealm } from '../../libs/realm';
 import { Historic } from '../../libs/realm/schemas/Historic';
 import { BSON } from 'realm';
 import { Alert } from 'react-native';
+import { useEffect, useState } from 'react';
+import { getLastAsyncTimestamp } from '../../libs/asyncStorage/syncStorage';
 
 export default function Arrival() {
   const realm = useRealm();
+  const [dataNotSync, setDataNotSync] = useState(false);
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<ParamListBase> & { params: { id: string } }>();
   const historic = useObject(Historic, new BSON.UUID(params.id) as unknown as string);
@@ -54,6 +65,12 @@ export default function Arrival() {
     }
   }
 
+  useEffect(() => {
+    getLastAsyncTimestamp().then((lastSync) =>
+      setDataNotSync(historic!.updated_at.getTime() > lastSync)
+    );
+  }, []);
+
   return (
     <Container>
       <Header title={title} />
@@ -68,6 +85,13 @@ export default function Arrival() {
           <ButtonIcon onPress={handleRemoveVehicleUsage} icon={X} />
           <Button title='Registrar chegada' onPress={handleArrivalRegister} />
         </Footer>
+      )}
+
+      {dataNotSync && (
+        <AsyncMessage>
+          Sincronização da {historic?.status === 'departure' ? 'partida ' : 'chegada '}
+          pendente
+        </AsyncMessage>
       )}
     </Container>
   );
